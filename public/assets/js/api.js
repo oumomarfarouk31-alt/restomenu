@@ -1,5 +1,5 @@
-function submitOrderToPlatform() {
-  if (cart.length === 0) {
+async function submitOrderToPlatform() {
+  if (!Array.isArray(cart) || cart.length === 0) {
     showToast(TRANSLATIONS[currentLang].emptyCart, 'alert-circle', true);
     return;
   }
@@ -7,43 +7,59 @@ function submitOrderToPlatform() {
   const info = validateCustomerInfo();
   if (!info) return;
 
-  const orderRef = "MIM-" + Math.floor(100000 + Math.random() * 900000);
-  const grandTotal = cart.reduce((acc, c) => acc + (c.unitPrice * c.quantity), 0);
+  const button = document.getElementById('submit-platform-button');
+  const originalText = button ? button.textContent : '';
+  if (button) {
+    button.disabled = true;
+    button.textContent = currentLang === 'ar' ? 'جارٍ إرسال الطلب للمطبخ...' : 'Envoi en cours...';
+  }
 
-  const orderPayload = {
-    orderId: orderRef,
-    restaurant: RESTAURANT_CONFIG.name,
-    customer: info,
-    items: cart.map(c => ({
-      id: c.item.id,
-      name: c.item.title.fr,
-      quantity: c.quantity,
-      unitPrice: c.unitPrice,
-      extras: c.selectedExtras.map(e => e.name.fr),
-      note: c.note
-    })),
-    totalPrice: grandTotal,
-    currency: "DZD",
-    createdAt: new Date().toISOString()
-  };
+  try {
+    const response = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        restaurantSlug: RESTAURANT_CONFIG.slug || 'mimosa',
+        customerName: info.name,
+        customerContact: info.tableOrPhone,
+        orderType: info.orderType === 'sur_place' ? 'sur_place' : 'takeaway',
+        items: cart.map(entry => ({
+          id: String(entry.item.id),
+          quantity: entry.quantity,
+          extras: entry.selectedExtras,
+          note: entry.note || ''
+        }))
+      })
+    });
 
-  console.log("Transmission vers la plateforme Mimosa:", orderPayload);
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Unable to save order.');
+    }
 
-  fetch('/api/orders', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(orderPayload)
-  }).then(res => res.json())
-    .then(data => console.log('Success:', data))
-    .catch(err => console.error('Error:', err));
-
-  showToast(`Commande #${orderRef} envoyée à la cuisine avec succès !`, "check-circle");
-
-  setTimeout(() => {
+    const orderNumber = result.order?.orderNumber || result.order?.order_number || '';
     cart = [];
     renderCart();
     toggleCartDrawer(false);
-  }, 1500);
+
+    const message = currentLang === 'ar'
+      ? `تم إرسال طلبك إلى المطبخ بنجاح. رقم الطلب: ${orderNumber}`
+      : currentLang === 'en'
+        ? `Your order was sent to the kitchen. Order number: ${orderNumber}`
+        : `Commande transmise à la cuisine. Référence : ${orderNumber}`;
+    showToast(message, 'check-circle');
+  } catch (error) {
+    console.error('Kitchen order submission failed:', error);
+    const message = currentLang === 'ar'
+      ? 'تعذر إرسال الطلب. لم يتم حذف السلة؛ حاول مرة أخرى.'
+      : currentLang === 'en'
+        ? 'Could not send the order. Your cart is still saved; please try again.'
+        : 'Impossible d’envoyer la commande. Votre panier est conservé ; réessayez.';
+    showToast(message, 'alert-circle', true);
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = originalText;
+    }
+  }
 }
