@@ -34,7 +34,7 @@ async function submitOrderViaWhatsApp() {
         restaurantSlug: RESTAURANT_CONFIG.slug || 'mimosa',
         customerName: info.name,
         customerContact: info.tableOrPhone,
-        orderType: info.orderType,
+        orderType: info.orderType === 'sur_place' ? 'sur_place' : 'takeaway',
         items: cart.map(entry => ({
           id: String(entry.item.id),
           quantity: entry.quantity,
