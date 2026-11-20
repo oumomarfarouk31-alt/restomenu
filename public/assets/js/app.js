@@ -16,6 +16,8 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   updateStaticTexts();
+  const trackingLink = document.getElementById('order-tracking-link');
+  if (trackingLink) trackingLink.href = `/${RESTAURANT_CONFIG.slug || 'mimosa'}/order-status`;
   if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
 });
 
