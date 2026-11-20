@@ -4,7 +4,7 @@
     fr: {
       eyebrow:'SUIVI DE COMMANDE', heading:'Où en est votre commande ?',
       intro:'Saisissez la référence reçue et le numéro de téléphone ou de table indiqué lors de la commande.',
-      ref:'Référence de commande', contact:'Téléphone / N° de table', submit:'Suivre ma commande',
+      ref:'Référence de commande', contact:'Téléphone / N° de table', name:'Nom du client', submit:'Suivre ma commande',
       back:'Retour au menu', details:'Détails de la commande', order:'COMMANDE',
       customer:'Client', statuses:{pending:'Reçue',confirmed:'Confirmée',preparing:'En préparation',ready:'Prête',completed:'Terminée',cancelled:'Annulée'},
       steps:['Reçue','Confirmée','Préparation','Prête','Terminée'],
@@ -16,7 +16,7 @@
     ar: {
       eyebrow:'تتبع الطلب', heading:'أين وصل طلبك؟',
       intro:'أدخل رقم الطلب الذي استلمته ورقم الهاتف أو رقم الطاولة الذي استخدمته عند الطلب.',
-      ref:'رقم الطلب', contact:'الهاتف / رقم الطاولة', submit:'تتبع طلبي',
+      ref:'رقم الطلب', contact:'الهاتف / رقم الطاولة', name:'اسم الزبون', submit:'تتبع طلبي',
       back:'العودة إلى القائمة', details:'تفاصيل الطلب', order:'الطلب',
       customer:'الزبون', statuses:{pending:'تم الاستلام',confirmed:'تم التأكيد',preparing:'قيد التحضير',ready:'جاهز',completed:'مكتمل',cancelled:'ملغى'},
       steps:['تم الاستلام','تم التأكيد','قيد التحضير','جاهز','مكتمل'],
@@ -28,7 +28,7 @@
     en: {
       eyebrow:'ORDER TRACKING', heading:'Where is your order?',
       intro:'Enter your order reference and the phone number or table number used when ordering.',
-      ref:'Order reference', contact:'Phone / Table number', submit:'Track my order',
+      ref:'Order reference', contact:'Phone / Table number', name:'Customer name', submit:'Track my order',
       back:'Back to menu', details:'Order details', order:'ORDER',
       customer:'Customer', statuses:{pending:'Received',confirmed:'Confirmed',preparing:'Preparing',ready:'Ready',completed:'Completed',cancelled:'Cancelled'},
       steps:['Received','Confirmed','Preparing','Ready','Completed'],
@@ -46,7 +46,7 @@
     document.documentElement.lang=lang;
     document.documentElement.dir=lang==='ar'?'rtl':'ltr';
     $('eyebrow').textContent=t.eyebrow;$('heading').textContent=t.heading;$('intro').textContent=t.intro;
-    $('ref-label').textContent=t.ref;$('contact-label').textContent=t.contact;$('lookup-button').textContent=t.submit;
+    $('ref-label').textContent=t.ref;$('contact-label').textContent=t.contact;$('name-label').textContent=t.name;$('lookup-button').textContent=t.submit;
     $('back-link').textContent=t.back;$('items-heading').textContent=t.details;$('order-ref-caption').textContent=t.order;
     if(lastOrder) renderOrder(lastOrder);
   }
@@ -85,7 +85,7 @@
     const button=$('lookup-button');button.disabled=true;button.textContent=lang==='ar'?'جارٍ البحث...':lang==='en'?'Searching...':'Recherche...';
     $('message').classList.add('hidden');$('result').classList.add('hidden');
     try{
-      const params=new URLSearchParams({restaurantSlug:'mimosa',orderNumber,customerContact});
+      const params=new URLSearchParams({restaurantSlug:'mimosa',orderNumber,customerContact,customerName});
       const response=await fetch('/api/orders?'+params.toString(),{cache:'no-store'});
       const data=await response.json().catch(()=>({}));
       if(!response.ok||!data.success){
