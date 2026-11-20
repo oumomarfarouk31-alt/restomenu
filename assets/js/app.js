@@ -16,7 +16,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   updateStaticTexts();
-  lucide.createIcons();
+  if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
 });
 
 function changeLanguage(lang) {
@@ -37,7 +37,7 @@ function changeLanguage(lang) {
   renderCategoryBar();
   renderMenu();
   renderCart();
-  lucide.createIcons();
+  if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
 }
 
 function updateStaticTexts() {
@@ -83,7 +83,7 @@ function renderCategoryBar() {
       </button>
     `;
   }).join('');
-  lucide.createIcons();
+  if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
 }
 
 function setCategory(id) {
@@ -118,7 +118,7 @@ function renderMenu() {
         <p class="text-sm text-slate-400">Aucun plat ne correspond à votre recherche.</p>
       </div>
     `;
-    lucide.createIcons();
+    if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
     return;
   }
 
@@ -173,7 +173,7 @@ function renderMenu() {
     `;
   }).join('');
 
-  lucide.createIcons();
+  if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
 }
 
 function openCustomizeModal(itemId) {
@@ -220,7 +220,7 @@ function openCustomizeModal(itemId) {
 
   updateModalTotal();
   document.getElementById('customize-modal').classList.remove('hidden');
-  lucide.createIcons();
+  if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
 }
 
 function toggleModalExtra(extraIndex, isChecked) {
@@ -301,7 +301,7 @@ function showToast(message, iconName = 'info', isError = false) {
   }
 
   toast.classList.remove('hidden');
-  lucide.createIcons();
+  if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
 
   setTimeout(() => {
     toast.classList.add('hidden');
