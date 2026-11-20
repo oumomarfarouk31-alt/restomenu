@@ -83,3 +83,16 @@ supabase test db
 الاختبارات الموجودة في `supabase/tests/rls_policies.test.sql` تتحقق من وجود جداول المنصة، وتفعيل RLS، وثبات سياسات الوصول الأساسية، ومنع الزائر من قراءة ملفات المستخدمين والعضويات أو تنفيذ دالة التحقق من Master.
 
 هذه اختبارات Regression للسياسات الأساسية وليست بديلًا عن اختبار عزل حسابين فعليين لمطعمين مختلفين أو اختبار التطبيق من المتصفح.
+
+
+## 6. Enregistrement des commandes (Sprint commandes)
+
+La migration `20261120030000_orders.sql` ajoute les tables `orders` et `order_items`. Les écritures passent par `/api/orders`, côté serveur, qui recalcule les prix à partir du menu Supabase au lieu de faire confiance aux montants envoyés par le navigateur.
+
+Ajoutez dans les variables d'environnement Vercel (côté serveur uniquement) :
+
+- `SUPABASE_SERVICE_ROLE_KEY` — clé secrète service_role du projet Supabase.
+
+**Ne préfixez jamais cette clé par `NEXT_PUBLIC_` et ne l'insérez jamais dans le code navigateur.** La clé contourne RLS et doit rester uniquement dans l'environnement serveur Vercel.
+
+Le formulaire de commande enregistre d'abord la commande et ses lignes dans la base, puis ouvre WhatsApp avec le récapitulatif enregistré. Le paiement en ligne n'est pas activé par cette étape.
