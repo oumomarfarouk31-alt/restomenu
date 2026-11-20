@@ -20,6 +20,26 @@
   <script src="/assets/js/tailwind.config.js"></script>
   <link rel="stylesheet" href="/assets/css/style.css" />
   <link rel="stylesheet" href="/assets/css/tailwind.css" />
+  <style>
+    :root { color-scheme: dark; }
+    html, body { background: #0b0f19 !important; color: #f8fafc !important; }
+    body { min-height: 100vh; }
+    .glass-panel { background: rgba(15,23,42,.94) !important; border-color: rgba(234,179,8,.18) !important; }
+    #hero-title { display:block !important; min-height:1.2em; color:#fff !important; font-size:clamp(2rem,5vw,3.5rem); line-height:1.12; text-shadow:0 4px 24px rgba(0,0,0,.3); }
+    #hero-subtitle { color:#cbd5e1 !important; font-size:clamp(.9rem,1.5vw,1.05rem); }
+    #category-bar { min-height:44px; }
+    #menu-container { min-height:260px; }
+    #menu-container > div { background:#111827 !important; border-color:#334155 !important; }
+    #search-input { background:#111827 !important; color:#fff !important; border-color:#475569 !important; }
+    #search-input::placeholder { color:#94a3b8 !important; }
+    #cart-drawer aside { background:#0b1220 !important; }
+    @media (max-width:640px) {
+      header .max-w-6xl { gap:10px; }
+      #restaurant-type-badge { display:none; }
+      #hero-title { font-size:2.15rem; }
+      #menu-container { grid-template-columns:1fr; }
+    }
+  </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-mimosa-500 selection:text-black">
 
