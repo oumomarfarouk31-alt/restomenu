@@ -36,6 +36,56 @@ function sameExtra(selected, available) {
   );
 }
 
+async function findOrderForCustomer(req, res) {
+  const restaurantSlug = typeof req.query?.restaurantSlug === 'string' ? req.query.restaurantSlug.trim() : '';
+  const orderNumber = typeof req.query?.orderNumber === 'string' ? req.query.orderNumber.trim() : '';
+  const customerContact = typeof req.query?.customerContact === 'string' ? req.query.customerContact.trim() : '';
+
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(restaurantSlug) ||
+      !validText(orderNumber, 80) ||
+      !validText(customerContact, 120)) {
+    return send(res, 400, { success: false, message: 'Enter a valid order reference and customer contact.' });
+  }
+
+  try {
+    const restaurants = await supabase(
+      `restaurants?select=id,name,slug,currency&slug=eq.${encodeURIComponent(restaurantSlug)}&is_active=eq.true&limit=1`
+    );
+    const restaurant = restaurants?.[0];
+    if (!restaurant) return send(res, 404, { success: false, message: 'Order not found.' });
+
+    const matches = await supabase(
+      `orders?select=order_number,customer_name,order_type,status,currency,total,created_at,order_items(item_name,quantity,line_total,selected_extras,note)&restaurant_id=eq.${restaurant.id}&order_number=eq.${encodeURIComponent(orderNumber)}&customer_contact=eq.${encodeURIComponent(customerContact)}&limit=1`
+    );
+    const order = matches?.[0];
+    if (!order) return send(res, 404, { success: false, message: 'No order matched those details.' });
+
+    return send(res, 200, {
+      success: true,
+      restaurant: { name: restaurant.name, slug: restaurant.slug },
+      order: {
+        orderNumber: order.order_number,
+        customerName: order.customer_name,
+        orderType: order.order_type,
+        status: order.status,
+        currency: order.currency || restaurant.currency || 'DZD',
+        total: Number(order.total),
+        createdAt: order.created_at,
+        items: (order.order_items || []).map(item => ({
+          name: item.item_name,
+          quantity: item.quantity,
+          total: Number(item.line_total),
+          extras: item.selected_extras || [],
+          note: item.note || ''
+        }))
+      }
+    });
+  } catch (error) {
+    console.error('Order lookup failed:', error.message);
+    return send(res, 500, { success: false, message: 'Unable to retrieve this order right now.' });
+  }
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store, max-age=0');
 
