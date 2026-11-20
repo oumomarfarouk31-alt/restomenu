@@ -15,8 +15,13 @@ async function supabase(path, options = {}) {
   // Supabase sb_secret_ keys are opaque API keys, not JWTs.
   // The API gateway mints the privileged JWT from apikey; do not send
   // the opaque secret key as Authorization: Bearer.
-  if (!SERVICE_KEY.startsWith('sb_secret_')) {
+  if (SERVICE_KEY.startsWith('sb_secret_')) {
+    // The API gateway recognizes the secret key from apikey and maps it to service_role.
+  } else if (SERVICE_KEY.startsWith('eyJ')) {
+    // Legacy service_role keys are JWTs and must also be sent as Bearer tokens.
     headers.Authorization = `Bearer ${SERVICE_KEY}`;
+  } else {
+    throw new Error('The server order key must be a Supabase secret key or legacy service_role key.');
   }
 
   const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
@@ -91,11 +96,7 @@ async function findOrderForCustomer(req, res) {
       }
     });
   } catch (error) {
-    const keyKind = SERVICE_KEY?.startsWith('sb_secret_') ? 'secret-key' : SERVICE_KEY?.startsWith('sb_publishable_') ? 'publishable-key' : SERVICE_KEY?.startsWith('eyJ') ? 'legacy-jwt' : 'unknown';
-    console.error('Order lookup failed:', error.status || 'no-status', error.message, 'keyKind:', keyKind);
-    if (req.query?.diagnostic === '1') {
-      return send(res, 500, { success: false, diagnostic: { keyKind, upstreamStatus: error.status || null, reason: error.message } });
-    }
+    console.error('Order lookup failed:', error.status || 'no-status', error.message);
     return send(res, 500, { success: false, message: 'Unable to retrieve this order right now.' });
   }
 }
@@ -103,8 +104,8 @@ async function findOrderForCustomer(req, res) {
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store, max-age=0');
 
-  if (!SUPABASE_URL || !SERVICE_KEY) {
-    return send(res, 503, { success: false, message: 'Order service is not configured.' });
+  if (!SUPABASE_URL || !SERVICE_KEY || SERVICE_KEY.startsWith('sb_publishable_')) {
+    return send(res, 503, { success: false, message: 'Order service is not configured. Add a Supabase Secret key (sb_secret_...) as SUPABASE_SERVICE_ROLE_KEY.' });
   }
 
   if (req.method === 'GET') return findOrderForCustomer(req, res);
@@ -223,8 +224,7 @@ module.exports = async (req, res) => {
       }
     });
   } catch (error) {
-    const keyKind = SERVICE_KEY?.startsWith('sb_secret_') ? 'secret-key' : SERVICE_KEY?.startsWith('sb_publishable_') ? 'publishable-key' : SERVICE_KEY?.startsWith('eyJ') ? 'legacy-jwt' : 'unknown';
-    console.error('Order creation failed:', error.status || 'no-status', error.message, 'keyKind:', keyKind);
+    console.error('Order creation failed:', error.status || 'no-status', error.message);
     return send(res, 500, { success: false, message: 'Unable to save the order. Please try again.' });
   }
 };
