@@ -6,14 +6,22 @@ function send(res, status, payload) {
 }
 
 async function supabase(path, options = {}) {
+  const headers = {
+    apikey: SERVICE_KEY,
+    'Content-Type': 'application/json',
+    ...(options.headers || {})
+  };
+
+  // Supabase sb_secret_ keys are opaque API keys, not JWTs.
+  // The API gateway mints the privileged JWT from apikey; do not send
+  // the opaque secret key as Authorization: Bearer.
+  if (!SERVICE_KEY.startsWith('sb_secret_')) {
+    headers.Authorization = `Bearer ${SERVICE_KEY}`;
+  }
+
   const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     ...options,
-    headers: {
-      apikey: SERVICE_KEY,
-      Authorization: `Bearer ${SERVICE_KEY}`,
-      'Content-Type': 'application/json',
-      ...(options.headers || {})
-    }
+    headers
   });
   const text = await response.text();
   let data = null;
