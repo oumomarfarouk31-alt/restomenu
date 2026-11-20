@@ -4,7 +4,7 @@
 
 begin;
 
-select extensions.plan(19);
+select extensions.plan(21);
 
 -- Required tenant tables.
 select extensions.has_table('public', 'profiles', 'profiles table exists');
@@ -101,6 +101,14 @@ select extensions.ok(
 select extensions.ok(
   not has_function_privilege('anon', 'private.is_master_admin()', 'EXECUTE'),
   'anonymous users cannot execute the Master authorization helper'
+);
+select extensions.ok(
+  not has_function_privilege('anon', 'public.rls_auto_enable()', 'EXECUTE'),
+  'anonymous users cannot call the RLS event trigger through RPC'
+);
+select extensions.ok(
+  not has_function_privilege('authenticated', 'public.rls_auto_enable()', 'EXECUTE'),
+  'authenticated users cannot call the RLS event trigger through RPC'
 );
 
 select * from extensions.finish();
