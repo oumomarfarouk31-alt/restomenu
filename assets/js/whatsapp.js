@@ -10,12 +10,7 @@ function validateCustomerInfo() {
   return { name, tableOrPhone, orderType };
 }
 
-function submitOrderViaWhatsApp() {
-  if (!RESTAURANT_CONFIG.whatsappNumber) {
-    showToast("Ce restaurant n’a pas encore configuré son numéro WhatsApp.", 'alert-circle', true);
-    return;
-  }
-
+async function submitOrderViaWhatsApp() {
   if (cart.length === 0) {
     showToast(TRANSLATIONS[currentLang].emptyCart, 'alert-circle', true);
     return;
@@ -24,68 +19,74 @@ function submitOrderViaWhatsApp() {
   const info = validateCustomerInfo();
   if (!info) return;
 
-  const orderRef = "MIM-" + Math.floor(100000 + Math.random() * 900000);
-  const isArabic = currentLang === 'ar';
-  let grandTotal = 0;
-
-  let msg = "";
-  if (isArabic) {
-    msg += `✨ *طلب جديد من مطعم ${RESTAURANT_CONFIG.name}* ✨\n`;
-    msg += `🔖 *رقم الطلب:* #${orderRef}\n`;
-    msg += `👤 *اسم العميل:* ${info.name}\n`;
-    msg += `📍 *النوع:* ${info.orderType === 'sur_place' ? 'طاولة داخل المطعم: ' + info.tableOrPhone : 'طلب خارجي / هاتف: ' + info.tableOrPhone}\n`;
-    msg += `--------------------------------\n`;
-    msg += `📋 *تفاصيل الأطباق:*\n\n`;
-
-    cart.forEach((c, idx) => {
-      const itemTotal = c.unitPrice * c.quantity;
-      grandTotal += itemTotal;
-      const dishTitle = c.item.title.ar || c.item.title.fr;
-      msg += `${idx + 1}. *${dishTitle}* (x${c.quantity})\n`;
-      msg += `   السعر: ${itemTotal} ${RESTAURANT_CONFIG.currency}\n`;
-      if (c.selectedExtras.length > 0) {
-        const extrasStr = c.selectedExtras.map(e => e.name.ar || e.name.fr).join(' + ');
-        msg += `   الإضافات: [${extrasStr}]\n`;
-      }
-      if (c.note) {
-        msg += `   ملاحظة: _${c.note}_\n`;
-      }
-      msg += `\n`;
-    });
-
-    msg += `--------------------------------\n`;
-    msg += `💰 *المجموع الكلي:* *${grandTotal} ${RESTAURANT_CONFIG.currency}*\n`;
-    msg += `⏱️ تم الطلب عبر القائمة الرقمية التفاعلية.`;
-  } else {
-    msg += `✨ *NOUVELLE COMMANDE - ${RESTAURANT_CONFIG.name.toUpperCase()}* ✨\n`;
-    msg += `🔖 *Référence:* #${orderRef}\n`;
-    msg += `👤 *Client:* ${info.name}\n`;
-    msg += `📍 *Mode:* ${info.orderType === 'sur_place' ? 'À Table (N° ' + info.tableOrPhone + ')' : 'À Emporter / ' + info.tableOrPhone}\n`;
-    msg += `--------------------------------\n`;
-    msg += `📋 *Détail des Plats:*\n\n`;
-
-    cart.forEach((c, idx) => {
-      const itemTotal = c.unitPrice * c.quantity;
-      grandTotal += itemTotal;
-      const dishTitle = c.item.title.fr;
-      msg += `${idx + 1}. *${dishTitle}* (x${c.quantity})\n`;
-      msg += `   Prix: ${itemTotal} ${RESTAURANT_CONFIG.currency}\n`;
-      if (c.selectedExtras.length > 0) {
-        const extrasStr = c.selectedExtras.map(e => e.name.fr).join(' + ');
-        msg += `   Suppléments: [${extrasStr}]\n`;
-      }
-      if (c.note) {
-        msg += `   Instruction: _${c.note}_\n`;
-      }
-      msg += `\n`;
-    });
-
-    msg += `--------------------------------\n`;
-    msg += `💰 *TOTAL À RÉGLER:* *${grandTotal} ${RESTAURANT_CONFIG.currency}*\n`;
-    msg += `🚀 Commandé depuis le menu digital.`;
+  const submitButton = document.getElementById('submit-order-button');
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.dataset.originalText = submitButton.textContent;
+    submitButton.textContent = currentLang === 'ar' ? 'جارٍ حفظ الطلب...' : 'Enregistrement...';
   }
 
-  const whatsappUrl = `https://wa.me/${RESTAURANT_CONFIG.whatsappNumber}?text=${encodeURIComponent(msg)}`;
-  window.open(whatsappUrl, '_blank');
-  showToast("Ouverture de WhatsApp en cours...", "message-circle");
+  try {
+    const response = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        restaurantSlug: RESTAURANT_CONFIG.slug || 'mimosa',
+        customerName: info.name,
+        customerContact: info.tableOrPhone,
+        orderType: info.orderType,
+        items: cart.map(entry => ({
+          id: String(entry.item.id),
+          quantity: entry.quantity,
+          extras: entry.selectedExtras,
+          note: entry.note || ''
+        }))
+      })
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Unable to save order.');
+    }
+
+    const { order, restaurant } = result;
+    const isArabic = currentLang === 'ar';
+    const lines = cart.map((entry, index) => {
+      const title = entry.item.title[currentLang] || entry.item.title.fr || entry.item.title.en;
+      const extras = entry.selectedExtras.map(extra => extra.name?.[currentLang] || extra.name?.fr || '').filter(Boolean);
+      return [
+        `${index + 1}. *${title}* × ${entry.quantity}`,
+        extras.length ? (isArabic ? `   الإضافات: ${extras.join('، ')}` : `   Suppléments: ${extras.join(', ')}`) : '',
+        entry.note ? (isArabic ? `   ملاحظة: ${entry.note}` : `   Note: ${entry.note}`) : ''
+      ].filter(Boolean).join('\n');
+    }).join('\n');
+
+    const orderTypeLabel = info.orderType === 'sur_place'
+      ? (isArabic ? `داخل المطعم: ${info.tableOrPhone}` : `Sur place: ${info.tableOrPhone}`)
+      : (isArabic ? `خارجي / هاتف: ${info.tableOrPhone}` : `À emporter / téléphone: ${info.tableOrPhone}`);
+
+    const message = isArabic
+      ? `طلب جديد من ${restaurant.name}\nرقم الطلب: ${order.orderNumber}\nالعميل: ${info.name}\nالنوع: ${orderTypeLabel}\n\n${lines}\n\nالمجموع: ${order.total} ${order.currency}`
+      : `Nouvelle commande — ${restaurant.name}\nRéférence: ${order.orderNumber}\nClient: ${info.name}\nMode: ${orderTypeLabel}\n\n${lines}\n\nTotal: ${order.total} ${order.currency}`;
+
+    cart = [];
+    renderCart();
+    toggleCartDrawer(false);
+
+    if (restaurant.whatsappNumber) {
+      const whatsappUrl = `https://wa.me/${restaurant.whatsappNumber}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank', 'noopener');
+      showToast(isArabic ? 'تم حفظ الطلب. جارٍ فتح واتساب...' : 'Commande enregistrée. Ouverture de WhatsApp...', 'check-circle');
+    } else {
+      showToast(isArabic ? `تم حفظ طلبك رقم ${order.orderNumber}` : `Commande enregistrée : ${order.orderNumber}`, 'check-circle');
+    }
+  } catch (error) {
+    console.error('Order submission failed:', error);
+    showToast(currentLang === 'ar' ? 'تعذر حفظ الطلب. حاول مرة أخرى.' : 'Impossible d’enregistrer la commande. Réessayez.', 'alert-circle', true);
+  } finally {
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.textContent = submitButton.dataset.originalText || submitButton.textContent;
+    }
+  }
 }
