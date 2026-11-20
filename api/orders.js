@@ -39,11 +39,11 @@ function sameExtra(selected, available) {
 async function findOrderForCustomer(req, res) {
   const restaurantSlug = typeof req.query?.restaurantSlug === 'string' ? req.query.restaurantSlug.trim() : '';
   const orderNumber = typeof req.query?.orderNumber === 'string' ? req.query.orderNumber.trim() : '';
-  const customerContact = typeof req.query?.customerContact === 'string' ? req.query.customerContact.trim() : '';
+  const customerContact = typeof req.query?.customerContact === 'string' ? req.query.customerContact.trim() : '';\n  const customerName = typeof req.query?.customerName === 'string' ? req.query.customerName.trim() : '';
 
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(restaurantSlug) ||
       !validText(orderNumber, 80) ||
-      !validText(customerContact, 120)) {
+      !validText(customerContact, 120) ||\n      !validText(customerName, 120)) {
     return send(res, 400, { success: false, message: 'Enter a valid order reference and customer contact.' });
   }
 
