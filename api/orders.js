@@ -91,7 +91,8 @@ async function findOrderForCustomer(req, res) {
       }
     });
   } catch (error) {
-    console.error('Order lookup failed:', error.message);
+    const keyKind = SERVICE_KEY?.startsWith('sb_secret_') ? 'secret-key' : SERVICE_KEY?.startsWith('sb_publishable_') ? 'publishable-key' : SERVICE_KEY?.startsWith('eyJ') ? 'legacy-jwt' : 'unknown';
+    console.error('Order lookup failed:', error.status || 'no-status', error.message, 'keyKind:', keyKind);
     return send(res, 500, { success: false, message: 'Unable to retrieve this order right now.' });
   }
 }
@@ -219,7 +220,8 @@ module.exports = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Order creation failed:', error.message);
+    const keyKind = SERVICE_KEY?.startsWith('sb_secret_') ? 'secret-key' : SERVICE_KEY?.startsWith('sb_publishable_') ? 'publishable-key' : SERVICE_KEY?.startsWith('eyJ') ? 'legacy-jwt' : 'unknown';
+    console.error('Order creation failed:', error.status || 'no-status', error.message, 'keyKind:', keyKind);
     return send(res, 500, { success: false, message: 'Unable to save the order. Please try again.' });
   }
 };
