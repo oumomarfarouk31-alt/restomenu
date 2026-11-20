@@ -1,17 +1,66 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr" dir="ltr">
 <head>
   <meta charset="UTF-8">
-  <title>Order Status - Mimosa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0f19">
+  <title>Suivre ma commande | RestoMenu</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="/assets/css/style.css" />
   <script src="/assets/js/tailwind.config.js"></script>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/tailwind.css">
+  <style>
+    :root{color-scheme:dark}body{background:#0b0f19;color:#f8fafc}
+    .field{width:100%;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:12px;color:#fff;outline:none}
+    .field:focus{border-color:#eab308;box-shadow:0 0 0 2px #eab30822}
+    .step-dot{width:34px;height:34px;border-radius:999px;display:grid;place-items:center;border:1px solid #475569;background:#111827;color:#94a3b8;flex-shrink:0}
+    .step-dot.done{background:#eab308;color:#111827;border-color:#eab308}
+    .step-line{height:3px;flex:1;background:#334155}.step-line.done{background:#eab308}
+    [dir=rtl] .step-label{text-align:right}
+  </style>
 </head>
-<body class="bg-night text-white flex items-center justify-center min-h-screen">
-  <div class="glass-panel p-8 rounded-2xl max-w-sm text-center">
-    <h1 class="text-2xl font-serif text-mimosa-400 mb-4">Order Received!</h1>
-    <p class="text-slate-300">Your order is currently being prepared in our kitchen.</p>
-    <a href="/" class="mt-6 inline-block bg-mimosa-500 text-black px-4 py-2 rounded-xl font-bold">Back to Menu</a>
-  </div>
+<body class="min-h-screen px-4 py-8 sm:py-12">
+  <main class="max-w-2xl mx-auto">
+    <header class="flex items-center justify-between gap-3 mb-8">
+      <a href="/" class="flex items-center gap-3">
+        <span class="w-11 h-11 rounded-full border-2 border-amber-400 grid place-items-center font-serif text-2xl text-amber-400">M</span>
+        <span><strong id="brand" class="block font-serif text-lg">Mimosa Brunch & Drunch</strong><small class="text-slate-400">RestoMenu</small></span>
+      </a>
+      <select id="language" class="field !w-auto !py-2 text-sm" aria-label="Language">
+        <option value="fr">Français</option><option value="ar">العربية</option><option value="en">English</option>
+      </select>
+    </header>
+
+    <section class="rounded-3xl border border-slate-800 bg-slate-900/70 p-5 sm:p-8 shadow-2xl">
+      <div class="text-center mb-7">
+        <span class="inline-flex rounded-full border border-amber-400/30 bg-amber-400/10 px-4 py-1.5 text-xs text-amber-300" id="eyebrow">SUIVI DE COMMANDE</span>
+        <h1 class="font-serif text-3xl sm:text-4xl font-bold mt-4" id="heading">Où en est votre commande ?</h1>
+        <p class="text-slate-400 text-sm mt-2" id="intro">Saisissez la référence reçue et le numéro de téléphone ou de table indiqué lors de la commande.</p>
+      </div>
+
+      <form id="lookup-form" class="grid gap-3 sm:grid-cols-2">
+        <label class="text-xs text-slate-300 sm:col-span-1"><span id="ref-label">Référence de commande</span><input id="order-number" class="field mt-1.5" maxlength="80" autocomplete="off" required placeholder="RM-..." /></label>
+        <label class="text-xs text-slate-300 sm:col-span-1"><span id="contact-label">Téléphone / N° de table</span><input id="customer-contact" class="field mt-1.5" maxlength="120" autocomplete="tel" required /></label>
+        <button id="lookup-button" class="sm:col-span-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold py-3 transition" type="submit">Suivre ma commande</button>
+      </form>
+      <p id="message" role="status" class="hidden mt-4 rounded-xl p-3 text-sm"></p>
+
+      <section id="result" class="hidden mt-8 border-t border-slate-800 pt-7">
+        <div class="flex flex-wrap justify-between gap-3 items-start">
+          <div><p class="text-xs text-slate-400" id="order-ref-caption">COMMANDE</p><h2 id="result-number" class="font-serif text-2xl font-bold text-amber-300"></h2><p id="result-customer" class="text-sm text-slate-300 mt-1"></p></div>
+          <span id="status-pill" class="rounded-full px-3 py-1.5 text-xs font-bold bg-amber-400/10 text-amber-300"></span>
+        </div>
+        <div id="timeline" class="flex items-center gap-1 mt-8"></div>
+        <div id="timeline-labels" class="grid grid-cols-4 gap-2 mt-3 text-[10px] text-slate-400"></div>
+        <div class="mt-7 rounded-2xl bg-slate-950/70 border border-slate-800 p-4">
+          <div class="flex justify-between text-sm"><span id="items-heading" class="font-bold">Détails</span><span id="result-total" class="font-bold text-amber-300"></span></div>
+          <div id="result-items" class="divide-y divide-slate-800 mt-2"></div>
+        </div>
+        <p id="updated-at" class="text-xs text-slate-500 mt-4"></p>
+      </section>
+    </section>
+    <footer class="text-center text-xs text-slate-500 mt-6"><a href="/" class="hover:text-amber-300" id="back-link">Retour au menu</a></footer>
+  </main>
+  <script src="/assets/js/order-status.js"></script>
 </body>
 </html>
