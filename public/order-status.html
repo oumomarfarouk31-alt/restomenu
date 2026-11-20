@@ -38,9 +38,9 @@
         <p class="text-slate-400 text-sm mt-2" id="intro">Saisissez la référence reçue et le numéro de téléphone ou de table indiqué lors de la commande.</p>
       </div>
 
-      <form id="lookup-form" class="grid gap-3 sm:grid-cols-2">
+      <form id="lookup-form" class="grid gap-3 sm:grid-cols-3">
         <label class="text-xs text-slate-300 sm:col-span-1"><span id="ref-label">Référence de commande</span><input id="order-number" class="field mt-1.5" maxlength="80" autocomplete="off" required placeholder="RM-..." /></label>
-        <label class="text-xs text-slate-300 sm:col-span-1"><span id="contact-label">Téléphone / N° de table</span><input id="customer-contact" class="field mt-1.5" maxlength="120" autocomplete="tel" required /></label>
+        <label class="text-xs text-slate-300 sm:col-span-1"><span id="contact-label">Téléphone / N° de table</span><input id="customer-contact" class="field mt-1.5" maxlength="120" autocomplete="tel" required /></label>\n        <label class="text-xs text-slate-300 sm:col-span-1"><span id="name-label">Nom du client</span><input id="customer-name" class="field mt-1.5" maxlength="120" autocomplete="name" required /></label>
         <button id="lookup-button" class="sm:col-span-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold py-3 transition" type="submit">Suivre ma commande</button>
       </form>
       <p id="message" role="status" class="hidden mt-4 rounded-xl p-3 text-sm"></p>
@@ -51,7 +51,7 @@
           <span id="status-pill" class="rounded-full px-3 py-1.5 text-xs font-bold bg-amber-400/10 text-amber-300"></span>
         </div>
         <div id="timeline" class="flex items-center gap-1 mt-8"></div>
-        <div id="timeline-labels" class="grid grid-cols-4 gap-2 mt-3 text-[10px] text-slate-400"></div>
+        <div id="timeline-labels" class="grid grid-cols-5 gap-2 mt-3 text-[10px] text-slate-400"></div>
         <div class="mt-7 rounded-2xl bg-slate-950/70 border border-slate-800 p-4">
           <div class="flex justify-between text-sm"><span id="items-heading" class="font-bold">Détails</span><span id="result-total" class="font-bold text-amber-300"></span></div>
           <div id="result-items" class="divide-y divide-slate-800 mt-2"></div>
