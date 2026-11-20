@@ -91,14 +91,14 @@ async function findOrderForCustomer(req, res) {
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store, max-age=0');
 
+  if (!SUPABASE_URL || !SERVICE_KEY) {
+    return send(res, 503, { success: false, message: 'Order service is not configured.' });
+  }
+
   if (req.method === 'GET') return findOrderForCustomer(req, res);
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'GET, POST');
     return send(res, 405, { success: false, message: 'Method Not Allowed' });
-  }
-
-  if (!SUPABASE_URL || !SERVICE_KEY) {
-    return send(res, 503, { success: false, message: 'Order service is not configured.' });
   }
 
   const body = req.body || {};
