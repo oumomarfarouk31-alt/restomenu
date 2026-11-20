@@ -39,11 +39,13 @@ function sameExtra(selected, available) {
 async function findOrderForCustomer(req, res) {
   const restaurantSlug = typeof req.query?.restaurantSlug === 'string' ? req.query.restaurantSlug.trim() : '';
   const orderNumber = typeof req.query?.orderNumber === 'string' ? req.query.orderNumber.trim() : '';
-  const customerContact = typeof req.query?.customerContact === 'string' ? req.query.customerContact.trim() : '';\n  const customerName = typeof req.query?.customerName === 'string' ? req.query.customerName.trim() : '';
+  const customerContact = typeof req.query?.customerContact === 'string' ? req.query.customerContact.trim() : '';
+  const customerName = typeof req.query?.customerName === 'string' ? req.query.customerName.trim() : '';
 
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(restaurantSlug) ||
       !validText(orderNumber, 80) ||
-      !validText(customerContact, 120) ||\n      !validText(customerName, 120)) {
+      !validText(customerContact, 120) ||
+      !validText(customerName, 120)) {
     return send(res, 400, { success: false, message: 'Enter a valid order reference and customer contact.' });
   }
 
@@ -55,7 +57,7 @@ async function findOrderForCustomer(req, res) {
     if (!restaurant) return send(res, 404, { success: false, message: 'Order not found.' });
 
     const matches = await supabase(
-      `orders?select=order_number,customer_name,order_type,status,currency,total,created_at,order_items(item_name,quantity,line_total,selected_extras,note)&restaurant_id=eq.${restaurant.id}&order_number=eq.${encodeURIComponent(orderNumber)}&customer_contact=eq.${encodeURIComponent(customerContact)}&limit=1`
+      `orders?select=order_number,customer_name,order_type,status,currency,total,created_at,order_items(item_name,quantity,line_total,selected_extras,note)&restaurant_id=eq.${restaurant.id}&order_number=eq.${encodeURIComponent(orderNumber)}&customer_contact=eq.${encodeURIComponent(customerContact)}&customer_name=eq.${encodeURIComponent(customerName)}&limit=1`
     );
     const order = matches?.[0];
     if (!order) return send(res, 404, { success: false, message: 'No order matched those details.' });
@@ -89,8 +91,9 @@ async function findOrderForCustomer(req, res) {
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store, max-age=0');
 
+  if (req.method === 'GET') return findOrderForCustomer(req, res);
   if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST');
+    res.setHeader('Allow', 'GET, POST');
     return send(res, 405, { success: false, message: 'Method Not Allowed' });
   }
 
