@@ -70,3 +70,16 @@ Redéployez le projet Vercel après avoir enregistré les variables.
 ## Sécurité
 
 Les tables exposées sont protégées par des politiques RLS. Le rôle Master est attribué manuellement dans Supabase SQL Editor. La clé publishable/anon n'est pas un secret et ne remplace pas RLS ; la clé `service_role` contourne RLS et doit rester exclusivement côté serveur.
+
+
+## 5. تشغيل اختبارات قاعدة البيانات
+
+بعد تشغيل الـ migrations على قاعدة تطوير، شغّل اختبارات pgTAP من جذر المشروع:
+
+```bash
+supabase test db
+```
+
+الاختبارات الموجودة في `supabase/tests/rls_policies.test.sql` تتحقق من وجود جداول المنصة، وتفعيل RLS، وثبات سياسات الوصول الأساسية، ومنع الزائر من قراءة ملفات المستخدمين والعضويات أو تنفيذ دالة التحقق من Master.
+
+هذه اختبارات Regression للسياسات الأساسية وليست بديلًا عن اختبار عزل حسابين فعليين لمطعمين مختلفين أو اختبار التطبيق من المتصفح.
