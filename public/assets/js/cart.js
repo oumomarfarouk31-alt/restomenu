@@ -8,7 +8,7 @@ function toggleCartDrawer(open) {
   } else {
     drawer.classList.add('hidden');
   }
-  lucide.createIcons();
+  if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
 }
 
 function toggleOrderType(val) {
@@ -48,7 +48,7 @@ function renderCart() {
     `;
     subtotalEl.innerText = `0 ${RESTAURANT_CONFIG.currency}`;
     totalEl.innerText = `0 ${RESTAURANT_CONFIG.currency}`;
-    lucide.createIcons();
+    if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
     return;
   }
 
@@ -98,5 +98,5 @@ function renderCart() {
 
   subtotalEl.innerText = `${grandTotal} ${RESTAURANT_CONFIG.currency}`;
   totalEl.innerText = `${grandTotal} ${RESTAURANT_CONFIG.currency}`;
-  lucide.createIcons();
+  if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
 }
