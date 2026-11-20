@@ -43,11 +43,11 @@
     },
     {
       "source": "/order-status",
-      "destination": "/public/order-status.html"
+      "destination": "/order-status.html"
     },
     {
       "source": "/:restaurantSlug/order-status",
-      "destination": "/public/order-status.html?restaurant=:restaurantSlug"
+      "destination": "/order-status.html?restaurant=:restaurantSlug"
     },
     {
       "source": "/mimosa",
