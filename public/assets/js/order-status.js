@@ -39,6 +39,8 @@
     }
   };
   let lang='fr', lastOrder=null, restaurantName='Mimosa Brunch & Drunch';
+  const pathParts=location.pathname.split('/').filter(Boolean);
+  const restaurantSlug=new URLSearchParams(location.search).get('restaurant') || (pathParts[0] && pathParts[0]!=='order-status' ? pathParts[0] : 'mimosa');
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const localized=value=>typeof value==='string'?value:(value?.[lang]||value?.fr||value?.ar||value?.en||'Article');
   function applyLanguage(){
@@ -85,7 +87,7 @@
     const button=$('lookup-button');button.disabled=true;button.textContent=lang==='ar'?'جارٍ البحث...':lang==='en'?'Searching...':'Recherche...';
     $('message').classList.add('hidden');$('result').classList.add('hidden');
     try{
-      const params=new URLSearchParams({restaurantSlug:'mimosa',orderNumber,customerContact,customerName});
+      const params=new URLSearchParams({restaurantSlug,orderNumber,customerContact,customerName});
       const response=await fetch('/api/orders?'+params.toString(),{cache:'no-store'});
       const data=await response.json().catch(()=>({}));
       if(!response.ok||!data.success){
