@@ -4,7 +4,7 @@
 
 begin;
 
-select extensions.plan(21);
+select extensions.plan(31);
 
 -- Required tenant tables.
 select extensions.has_table('public', 'profiles', 'profiles table exists');
@@ -85,6 +85,27 @@ select extensions.policies_are(
   'menu_items has only its expected baseline policies'
 );
 
+select extensions.has_table('public', 'orders', 'orders table exists');
+select extensions.has_table('public', 'order_items', 'order_items table exists');
+select extensions.ok(
+  (select relrowsecurity from pg_class where oid = 'public.orders'::regclass),
+  'RLS is enabled on orders'
+);
+select extensions.ok(
+  (select relrowsecurity from pg_class where oid = 'public.order_items'::regclass),
+  'RLS is enabled on order_items'
+);
+select extensions.policies_are(
+  'public', 'orders',
+  array['orders_manager_read', 'orders_manager_update'],
+  'orders has only manager read/update policies'
+);
+select extensions.policies_are(
+  'public', 'order_items',
+  array['order_items_manager_read'],
+  'order_items has only manager read policies'
+);
+
 -- Privileges and helper-function execution boundaries.
 select extensions.ok(
   not has_table_privilege('anon', 'public.profiles', 'SELECT'),
@@ -109,6 +130,23 @@ select extensions.ok(
 select extensions.ok(
   not has_function_privilege('authenticated', 'public.rls_auto_enable()', 'EXECUTE'),
   'authenticated users cannot call the RLS event trigger through RPC'
+);
+
+select extensions.ok(
+  not has_table_privilege('anon', 'public.orders', 'SELECT'),
+  'anonymous users cannot read orders directly'
+);
+select extensions.ok(
+  not has_table_privilege('anon', 'public.orders', 'INSERT'),
+  'anonymous users cannot insert orders directly'
+);
+select extensions.ok(
+  not has_table_privilege('anon', 'public.order_items', 'SELECT'),
+  'anonymous users cannot read order items directly'
+);
+select extensions.ok(
+  not has_table_privilege('anon', 'public.order_items', 'INSERT'),
+  'anonymous users cannot insert order items directly'
 );
 
 select * from extensions.finish();
